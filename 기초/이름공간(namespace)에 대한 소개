@@ -1,0 +1,216 @@
+2024/12/05
+
+[이름공간(namespace)에 대한 소개]
+'이름공간'은 우리에게 다소 생소한 개념이다. 그러나 어려운 개념은 아니다. 이름공간은 다음과 같이 풀어서 이야기 할 수 있다.
+'이름을 붙여놓은 공간'
+말 그대로 특정 영역에 이름을 붙여주기 위한 문법적 요소이다.
+
+[이름공간의 기본원리]
+한 공간에 같은 이름을 가진 함수가 두 개 이상있다면, 상황에 따라서 문제가 될 수 있다.
+함수를 호출 할 때 어떤 함수를 호출하는지 컴파일러가 인식할 수 없기 때문이다.
+
+'? 근데 이거 매개변수가 다르면 오버로딩으로 해결 가능한거 아닌가?'
+
+라고 생각 할 수 있지만 함수의 이름이 같고 매개변수 형이 동일하면 문제가 된다.
+
+void SimpleFunc(void)
+{
+  cout << "bestCom이 정의한 함수" << endl;
+}
+
+void SimpleFunc(void)
+{
+  cout << "progCom이 정의한 함수" << endl;
+}
+
+int main(void)
+{
+  SimpleFunc( );
+  return 0;
+}
+
+이런 형식이면 문제가 발생하지만
+자신만의 이름공간을 만들고 이 안에 함수를 정의하거나 변수를 선언한다면,
+
+namespace bestComImpl // 'bestComImpl' 이 이름공간의 이름
+{
+  // 이름공간의 내부
+}
+
+이름충돌은 발생하지 않는다.
+
+ex)
+
+namespace bestComImpl      // 3행
+{
+    void SimpleFunc(void)
+  {
+    cout << "bestCom이 정의한 함수" << endl;
+  }
+}                          // 9행
+
+namespace progComImpl      // 11행
+{
+    void SimpleFunc(void)
+  {
+    cout << "progCom이 정의한 함수" << endl;
+  }
+}                          // 17행
+
+int main(void)
+{
+  bestComImpl::SimpleFunc( );      // 21행
+  progComImpl::SimpleFunc( );      // 22행
+  return 0;
+}
+
+해설
+3 ~ 9 행 : bestComImpl이라는 공간을 마련하였다. 그리고 그안에 함수 SimpleFunc를 정의했다.
+따라서 이 함수는 'bestComImpl::SimpleFunc' 이라고 지칭하게 된다.
+11 ~ 17 행: progComImpl이라는 이름의 공간을 마련하였다. 그리고 그안에 함수 SimpleFunc를 정의했다.
+따라서 이 함수는 'progComImpl::SimpleFunc' 이라고 지칭하게 된다.
+21 행 : 이름공간 bestComImpl 내에 정의된 함수 SimpleFunc의 호출문장
+22 행 : 이름공간 progComImpl 내에 정의된 함수 SimpleFunc의 호출문장
+
+결과
+bestCom이 정의한 함수
+progCom이 정의한 함수
+
+위 예제에서 사용된 연산자 ::을 가르켜 '범위지정 연산자(scope resolution operator)'라 하며,
+그 이름이 의미하듯 이름공간을 지정할 때 사용하는 연산자이다.
+
+[이름공간 기반의 함수 선언과 정의의 구분]
+함수는 선언과 정의를 분리하는 것이 일반적이다. '함수의 선언'은 헤더파일에 저장하고, '함수의 정의'는 소스파일에 저장하는 것이 보통입니다.
+따라서 다음 예제를 통해 이름공간 기반에서 함수의 선언과 정의를 구분하는 방법을 설명하겠습니다.
+
+ex) NameSp2.cpp
+
+#include <iostream>
+using namespace std;
+
+namespace BestComImpl        // 4행
+{
+    void SimpleFunc(void);
+}                             // 7행
+
+namespace ProgComImpl          // 9행
+{
+    void SimpleFunc(void);
+}                                // 12행
+
+int main(void)
+{
+    BestComImpl::SimpleFunc();
+    ProgComImpl::SimpleFunc();
+    return 0;
+}
+
+void BestComImpl::SimpleFunc(void)     // 21행   
+{
+    cout << "BestCom 이 정의한 함수" << endl;
+}
+
+void ProgComImpl::SimpleFunc(void)        // 26행
+{
+    cout << "ProgCom 이 정의한 함수" << endl;
+}
+
+
+해설
+4 ~ 7 행 : 이름공간 안에 함수의 선언만 삽입
+9 ~ 12 행 : 마찬가지로 이름공간 안에 함수의 선언만 삽입
+21 행 : 이름공간 BestComImpl에 선언된 함수 SimpleFunc의 정의 부분.
+이렇듯 ::연산자는 함수의 호출 이외에도 다양하게 사용된다.
+26 행 : 이름공간 ProgComImpl에 선언된 함수 SimpleFunc의 정의 부분.
+
+결과
+BestCom 이 정의한 함수
+ProgCom 이 정의한 함수
+
+
+참고로, 동일한 이름공간에 정의된 함수를 호출할 때에는 이름공간을 명시할 필요가 없다.
+
+ex) NameSp3.cpp
+
+#include <iostream>
+using namespace std;
+
+namespace BestComImpl        // 4행
+{
+  void SimpleFunc(void);
+}
+
+namespace BestComImpl        // 9행
+{
+    void PrettyFunc(void);
+}
+
+namespace ProgComImpl
+{
+    void SimpleFunc(void);
+}
+
+int main(void)
+{
+    BestComImpl::SimpleFunc();
+    return 0;
+}
+
+void BestComImpl::SimpleFunc(void)        // 25행
+{
+    cout << "BestCom이 정의한 함수" << endl;
+    PrettyFunc();            // 동일 이름공간            // 28행
+    ProgComImpl::SimpleFunc();    // 다른 이름공간        // 29행
+}
+
+void BestComImpl::PrettyFunc(void)
+{
+    cout << "So Pretty!!" <<endl;
+}
+
+void ProgComImpl::SimpleFunc(void)
+{
+    cout << "ProgCom이 정의한 함수" << endl;
+}
+
+해설
+4, 9행 : 이름공간은 둘 이상의 영역으로 나뉘어서 선언할 수도 있다. 물론 이둘은 동일공간으로 간주한다
+28 행 : 25행에 정의된 함수와 동일한 이름공간에 정의된 함수이다. 따라서 이렇게 직접호출이 가능하다.
+29 행 : 함수의 호출위치가 어떻게 되건, 이름공간 ProgComImpl에 정의된 함수 SimpleFunc를 호출하는 방법에는 차이가 없다.
+
+
+결과
+BestCom이 정의한 함수
+So Pretty!!
+ProgCom이 정의한 함수
+
+위의 예제를 통해서 이름공간과 관련된 특성 몇 가지를 더 이해했다 (맞음?)
+이렇듯 C++의 기본 뭄법을 익힐 때에는, 간단한 예제를 직접 작성해보면서 결과를 확인하는 것이 좋다.
+
+[이름공간의 중첩]
+이름공간의 마지막 특성인 중첩에 대해서 설명.
+이름공간은 다른 이름공간 안에 삽입될 수 있다. 다음과 같은 형태로 말이다
+
+namespace Parent
+{
+    int num = 2;
+
+    namespace SubOne
+    {
+      int num = 3;
+    }
+
+    namespace SubTwo
+    {
+      int num = 4;
+    }
+}
+
+위의 예제에는 총 3개의 num 이 존재하는데, 각각이 선언된 이름공간이 다르기 때문에 이름충돌 문제가 발생하지 않는다.
+그렇다면 각각의 변수 num에 접근하는 방법은 어떻게 될까?
+
+cout << Parent::num << endl;
+cout << Parent::SubOne::num << endl;
+cout << Parent::SubOne::SubTwo::num << endl;
+
+순서대로 2, 3, 4가 출력된다.
