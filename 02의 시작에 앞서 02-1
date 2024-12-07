@@ -1,0 +1,63 @@
+2024/12/07
+
+C언어 복습
+
+const의 의미
+
+const int num = 10;    // num의 상수화
+const int * ptr1 = &val1;  // 참조자 val1의 값을 ptr1로 변경 불가
+int * const ptr2 = &val2;  // ptr2의 상수화
+const int * const ptr3 = &val3;    // 참조자 val3의 값을 ptr3로 변경 불가
+
+실행중인 프로그램의 메모리 공간
+
+실행중인 프로그램은 운영체제로부터 메모리 공간을 할당 받는데, 이는 크게 데이터, 스택, 힙영역으로 나뉜다.
+각각의 영역에서 어떠한 형태의 변사가 할당되는지 설명해보자. 특히 C언어의 malloc과 free함수와 관련해서도 설명해보자
+
+데이터 : 전역변수가 저장되는 영역
+스택 : 전역변수 및 매개변수가 저장되는 영역
+힙 : 동적할당 (malloc 함수에 의해 프로그램이 실행되는 과정에서 동적으로 할당이 이뤄지는 영역)
+malloc & free : malloc 함수호출로 동적으로 메모리공간을 할당 
+                free 함수호출로 할당받은 메모리공간을 소멸 (malloc으로 받은 공간은 free로만 소멸한다)
+
+
+Call-by-Value vs. Call-by-Reference
+함수의 호출형태는 크게 '값에 의한 호출(Call-by-Value)'과 '참조에 의한 호출(Call-by-Reference)'로 나뉜다.
+이 둘을 나누는 기준이 무엇인지, 두 int형 변수의 값을 교환하는 Swap 함수를 예로 설명해보자
+
+Call-by-Value
+void Swap(int num1, int num2)
+{
+  int temp = num1;
+  num1 = num2;
+  num2 = num1;
+}
+
+위의 예시가 'Call-by-Value'이다.
+이 함수는 주소값을 받는 것이 아닌 값을 받는것이기 때문에 새로운 주소값으로 값을 받아
+실질적으로는 main에서의 값은 변하지 않는다.
+
+
+Call-by-Reference
+void Swap(int * num1, int * num2)
+{
+  int temp = *num1;
+  *num1 = *num2;
+  *num2 = temp;
+}
+
+위의 예시가 'Call-by-Reference'이다.
+이 함수는 값을 받는것이 아닌 주소값을 받기 때문에
+직접 주소값에 접근해 값을 바꾸는 형식이기에 main에서의 값이 변경된다.
+
+
+
+
+
+
+
+
+
+
+
+
