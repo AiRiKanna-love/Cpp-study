@@ -193,12 +193,26 @@ int main(void)
     int *ptr = &num;
     int **dptr = &ptr;
 
-    int &ref = num;
-    int *(pref) = ptr;
-    int **(&dpref) = dptr;
+    int &ref = num;           // 10행
+    int *(pref) = ptr;        // 11행
+    int **(&dpref) = dptr;    // 12행
 
     cout << ref << endl;
-    cout << *pref << endl;
-    cout << **dpref << endl;
-
+    cout << *pref << endl;    // 15행
+    cout << **dpref << endl;    // 16행
+    return 0;
 }
+
+해설
+11, 12 행 : 포인터 변수의 참조자 선언도 & 연산자를 하나 더 추가하는 형태로 진행이 된다.
+            이미 잘 아는 10행의 참조자 선언과 비교해보자.
+15 행 : pref는 포인터 변수 ptr의 참조자이므로, 변수 num에 저장된 값이 출력.
+16 행 : dpref는 포인터 변수 dptr의 참조자이므로, 변수 num에 저장된 값이 출력.
+
+결과
+12
+12
+12
+
+이제 참조자의 선언 가능 유무와 참조자의 선언 방법에 대한 규칙이 잘 정리되었으리라 믿고,
+함수의 관계를 시작으로 참조자에 대한 조금 더 깊은 이야기를 시작해보자.
