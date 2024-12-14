@@ -1,0 +1,80 @@
+2024/12/14
+
+C++로 프로그래밍을 하다 보면, 자신이 잘 알고 또 사용해온 C언어의 표준함수를 사용하고 싶을 때가 있다.
+그렇다면 그럴 경우에는 어떻게 해야 할까?
+
+
+[c를 더하고 .h를 빼라]
+
+C언어의 라이브러리에는 매우 다양한 유형의 함수들이 정의되어 있다. 그런데 이러한 함수들은 C++의 표준 라이브러리에도 포함되어 있다.
+따라서 어렵지 않게 사용이 가능하다. 다음은 C언어의 헤더파일에 대응하는 C++의 헤더정보를 일부만 정리한 것이다.
+
+  #include <stdio.h> ->  #include <cstdio>
+  #include <stdlib.h> ->  #include <cstdlib>
+  #include <math.h> ->  #include <cmath>
+  #include <string.h> ->  #include <cstring>
+
+위의 예만 보더라도 다음의 관계를 파악할 수 있다.
+
+  헤더파일의 확장지인 .h 를 생략하고 앞에 c를 붙이면 C언어에 대응하는 C++의 헤더파일 이름이 된다.
+
+따라서 쉽게 C언어의 함수를 C++에서도 호출할 수 있다. 사실 이름공간 std 내에 선언되어 잇다는 사실만 제외하면, C++의 헤더는 C언어의 헤더와 별 차이가 없다.
+따라서 다음과 같이 예제를 작성하면 된다.
+
+ex) StdCPPFunc.cpp
+#include <cmath>          // 1 행
+#include <cstdio>          // 2 행
+#include <cstdlib>          // 3 행
+using namespace std;          // 4 행
+
+int main(void)
+{
+    char str1[] = "Result";
+    char str2[30];
+
+    strcpy(str2, str1);                              // 11 행
+    printf("%s : %f \n", str1, sin(0.14));          // 12 행
+    printf("%s : %f \n", str2, abs(-1.25));        // 13 행
+    return 0;
+}
+
+해설
+1 행 : C 표준헤더 math.h에 해당
+2 행 : C 표준헤더 stdio.h에 해당
+3 행 : C 표준헤더 string.h에 해당
+4 행 : C의 표준에 정의된 함수들 조차 이름공간 std 안에 선언이 되어 있어서 이 문장이 삽입되어야 한다.
+
+11 ~ 13 행 : C언어의 표준함수 호출
+
+결과
+Result : 0.139543
+Result : 1.250000
+
+물론 stdio.h와 같은 C언어의 헤더파일을 이용해도 되지만, 가급적 C++의 헤더를 기반으로 예제를 작성하자.
+
+
+[C++의 헤더를 선언해야 하는 이유]
+
+C++ 관점에서, 여전히 다음행태로 함수호출을 허용하는 이유는 '하위 버전과의 호환성(backwards Compatibility)'을 제공하기 위함으로 볼 수 있다.
+
+  #include <stdio.h>
+  int main(void)
+  {
+      printf("Hello World");
+      return 0;
+  }
+
+그리고 C++ 표준 라이브러리가 제공하는 함수들과 C 표준 라이브러리가 제공하는 함수들이 완전히 일치하는 것도 아니다.
+예를 들어서 위 예제에서 호출한바 있는 abs 함수는 C 표준에서 다음과 같이 선언되어 있다.
+
+  int abs(int num);
+
+반면 C++에서는 다음과 같이 오버로딩 되어있다.
+
+  long abs(long num);
+  float abs(long num);
+  double abs(long num);
+  long double abs(long double num);
+
+C++에서는 함수 오버로딩이 가능하기 때문에 자료형에 따라서 함수의 이름을 달리해서 정의하지 않고, 보다 사용하기 편하도록 함수를 오버로딩 해 놓은 것이다.
+이렇듯 C++ 문법을 기반으로 개선된 형태로 라이브러리가 구성되어 있으므로, 가급적 C++의 표준헤더를 이용해서 함수를 호출하는 것이 좋다.
