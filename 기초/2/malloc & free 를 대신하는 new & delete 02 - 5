@@ -1,0 +1,170 @@
+2024/12/08
+
+C언어를 공부하면서 malloc 과 free 함수의 필요성을 이해하는 것은 하나의 고비가 될 수 있다.
+그러나 책의 필자는 우리가 힙 영역의 특성을 이해하고, 힙의 메모리 할당 및 소멸에 필요한 함수가
+malloc 과 free 임을 알고 있다고 가정하고 이야기를 이어가겠다.
+
+// 조졋네 난 모르는걸? ㅋㅋㅋㅋㅋㅋㅋ
+// 그냥 메모리 공간 할당과 소멸만 안다.
+
+2024/12/14
+/* 바쁘다..
+컴터를 이제 만집니다..
+*/
+
+[new & delete]
+
+길이정보를 인자로 받아서, 해당 길이의 문자열 저장이 가능한 배열을 생성하고, 그 배열의 주소 값을 반환하는 함수를 정의해보자.
+
+ex) MemMalFree.cpp
+#include <iostream>
+#include <string.h>    // 2 행
+#include <stdlib.h>    // 3 행
+using namespace std;
+
+char * MakeStarAdr(int len)
+{
+    char * str(char*)malloc(sizeof(char)*len);    // 8 행
+    return str;
+}
+
+int main(void)
+{
+    char * str = MakeStarAdr(20)
+    strcpy(str, "I am so happy~");
+    cout << str << endl;
+    free(str);    // 17 행
+    return 0;
+}
+
+해설
+2, 3 행 : C++ 에서 C언어의 헤더파일을 추가하는 것도 가능하다. 이 것은 별도 언급
+8 행 : 문자열 저장을 위한 배열을 힙 영역에 할당하고 있다. // malloc
+17행 : 힙에 할당된 메모리 공간을 소멸하고 있다.
+
+결과
+I am so happy~
+
+위 예제는 C언어에서의 동적할당을 보인 것이다. 그런데 이 방법에는 다음의 두 가지 불편사항이 따른다.
+
+  할당할 대상의 정보를 무조건 바이트 크기단위로 전달해야 한다.
+  반환형이 void형 포인터이기 때문에 적절한 형 변환을 거쳐야 한다.
+
+그런데 C++에서 제공하는 키워드 new와 delete를 사용하면 이러한 불편한 점이 사라진다. new는 malloc 함수를 대신하는 키워드이고,
+delete는 free 함수를 대신하는 키워드이다. 먼저 키워드 new의 사용방법을 정리하면 다음과 같다.
+
+  int형 변수의 할당                    int * ptr1 = new int;
+  double형 변수의 할당                 double * ptr2 = new double;
+  길이가 3인 int형 배열의 할당          int * arr1 = new int[3];
+  길이가 7인 double형 배열의 할당       double * arr2 = new double[7];
+
+문장이 의미하는 바가 쉽게 이해될 것이다. 특히 키워드 new의 오른편에, 할당할 대상의 정보를 직접 명시하고 있음에 주목하기 바란다.
+그럼 이어서 free 함수를 대신하는 키워드 delete의 사용방법을 정리해보겠다.
+
+  앞서 할당한 int형 변수의 소멸             delete ptr1;
+  앞서 할당한 double형 변수의 소멸          delete ptr2;
+  앞서 할당한 int형 배열의 소멸             delete []arr1;
+  앞서 할당한 double형 배열의 소멸          delete []arr2;
+
+정리하면, new 연산 시 반환된 주소 값을 대상으로 delete 연산을 진행하되, 할당된 영역이 배열의 구조라면 []를 추가로 명시해주기만 하면 된다.
+그럼 앞서 보인 예제 MemMalFree.cpp를 변경하여 new와 delete의 사용 예를 보이겠다.
+
+ex) NewDelete.cpp
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+char * MakeStrAdr(int len)
+{
+    // char * str(char*)malloc(sizeof(char)*len);     // 7 행
+    char * str = new char[len];                       // 8 행
+    return str;
+}
+
+int main(void)
+{
+    char * str = MakeStrAdr(20);
+    strcpy(str, "I am so happy!");
+    cout << str << endl;
+    //free(str);
+    delete = []str;                                  // 18 행
+    return 0;
+}
+
+해설
+7, 8 행 : 단순비교를 하더라도 new를 이용한 동적할당이 훨씬 간결함을 알 수 있다.
+18 행 : 배열의 형태로 할당된 메모리 공간의 해제를 보이고 잇다.
+
+결과
+I am so happy!
+
+new와 delete에 대해서도 설명하였으니, 이제 앞으로 C++에서는 malloc과 free 함수를 호출하는 일이 없어야 한다.
+특히 C++에서는 malloc과 free 함수의 호출이 문제가 될 수도 있다는 사실을 기억하기 바란다.
+
+[객체의 생성에서는 반드시 new & delete] 
+
+말이 나온 김에 malloc 과 free 함수의 호출이 어떻게 문제가 될 수 있는지 간단히 언급하겠다. 아직은 클래스와 객체에 대한 설명이
+진행되지 않았기 때문에 자세히 언급할 수는 없지만, 실행결과를 통해서 문제점을 확인할 수는 있다.
+그럼 눈으로 가볍게 확인만 하겠다는 생각으로 다음 예제를 봐보자.
+
+ex) NewObject.cpp
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+class Simple    // 5 행
+{
+  public:
+      Simple( )
+      {
+          cout << "I'm simple constructor!" << endl;
+      }
+};              // 12 행
+
+int main(void)
+{
+    cout << "case 1: ";
+    Simple * sp1 = new Simple;    // 17 행
+
+    cout << "case 2: ";
+    Simple * sp2 = (Simple*)malloc(sizeof(Simple)*1);      // 20 행
+
+    cout << endl << "end of main" << endl;
+    delete sp1;        // 23 행
+    free(sp2);          // 24 행
+    return 0;
+}
+
+해설
+5 ~ 12 행 : 아직은 클래스를 모르니, 이를 그저 C언어의 구조체라고 생각하자. 즉, 프로그래머가 직접 정의한 자료형으로 인식하자.
+17 행 : 5행에 정의되어 있는 자료형을 근거로, new 연산자를 이용해서 힙 영역에 변수를 할당하고 있다.
+20 행 : 5행에 정의되어 잇는 자료형을 근거로, malloc 하수호출을 통해서 힙 영역에 변수를 할당하고 있다.
+23, 24 행 : 할당방법에 따른 소멸 진행
+
+결과
+case 1: I'm simple constructor!
+case 2:
+end of main
+
+예제를 이해하려고 하지 말고, 단순히 관찰을 해보자. 위 예제 17행과 20행은 Simple이라는 자료형의 변수를 하나 할당하는 문장이다.
+그런데 실행결과를 보면, 동장방식에서 차이가 있음을 알 수 있다. 17행은 실행의 결과로 문자열 "I'm simple constructor!" 가 출력되었다.
+그러나 20행의 실행결과로는 어떠한 문자열의 출력결과도 확인할 수 없다. 즉, 결론은 다음과 같다.
+
+  new와 mallo 함수의 동작방식에는 차이가 있다.
+
+이 사실만 기억하자. 이후에 클래스와 객체, 그리고 생성자에 대해서 알고 나면, 위 예제를 정확히 이해할 수 있고,
+또 동장방식의 차이가 정확히 무엇인지 알 수 있으니 말이다.
+
+
+[힙에 할당된 변수? 이제 포인터를 사용하지 않아도 접근할 수 있어요.]
+
+참조자의 선언은 상수가 아닌 변수를 대상으로만 가능함을 알고 있을 것이다(const 참조자가 아닌 경우). 그렇다면 new 연산자를 이용해서 할당된 메모리 공간에도 참조자의 선언이 가능할까?
+정의에 따르면, 변수의 자격을 갖추기 위해서는 메모리 공간이 할당되고, 그 공간을 의미하는 이름이 존재해야 하지만, C++에서는 new 연산자를 이용해서 할당된 메모리 공간도 변수로 간주하여,
+참조자의 선언이 가능하도록 하고 잇다. 따라서 다음의 문장구성이 가능하다.
+
+  int *ptr = new int;
+  int &ref = *ptr;    // 힙 영역에 할당된 변수에 대한 참조자 선언
+  ref = 20;  
+  cout << ref << endl;    // 출력결과는 20
+
+비록 흔히 사용되는 문장은 아니지만, 참조자의 선언을 통해서, 포인터 연산없이 힙 영역에 접근했다는 사실에 주목하자.
