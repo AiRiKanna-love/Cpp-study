@@ -1,0 +1,85 @@
+2024/12/15 
+
+문제 1.
+참조자를 이용해서 다음 요구사항에 부합하는 함수를 각각 정의해라.
+
+  인자로 전달된 int형 변수의 값을 1씩 증가시키는 함수
+  인자로 전달된 int형 변수의 부호를 바꾸는 함수
+
+그리고 위의 각 함수를 호출하여 그 결과를 확인하는 main 함수까지 작성
+
+#include <iostream>
+using namespace std;
+
+void Increase(int &num1)
+{
+    num1 ++;
+}
+
+void Swap(int &num2)
+{
+    num2 *= -1;
+}
+
+int main(void)
+{
+    int num1 = 1;
+    Increase(num1);
+    cout << num1 << endl;
+    Swap(num1);
+    cout << num1 << endl;
+    return 0;
+}
+
+
+문제 2.
+앞서 소개한 예제 RefSwap.cpp의 SwapByRef2 함수를 다음의 형태로 호출하면 컴파일 에러가 발생한다.
+  
+  SwapByRef2(23, 45);
+
+컴파일 에러가 발생하는 이유를 설명하자.
+
+참조자는 변수만 참조가 가능하기 때문에 인수가 상수로 전달되면 오류가 발생한다.
+
+문제 3.
+문제의 제시에 앞서 코드를 보자.
+
+  int main(void)
+  {
+      int num1 = 5;
+      int *ptr1 = &num1;
+      int num2 = 20;
+      int *ptr2 = &num2;
+      ....
+  }
+
+위의 코드를 보면 ptr1과 ptr2가 각각 num1과 num2를 가르키고 있다. 이 때 ptr1과 ptr2를 대상으로 다음과 같이 함수를 호출하고 나면,
+
+  SwpaPointer(ptr1, ptr2);
+
+ptr1과 ptr2가 가르키는 대상이 서로 바뀌도록 SwapPointer함수를 정의해보자.
+
+  #include <iostream>
+  using namespace std;
+
+  void SwapPointer(int *ptr1, int *ptr2)
+  {
+      int temp = *ptr1;
+      *ptr1 = *ptr2;
+      *ptr2 = temp;
+  }
+
+// 1, 2번 문제는 답이 같으나 3번은 다름
+
+책 답안
+
+#include <iostream>
+using namespace std;
+
+  void SwapPointer(int *(&pref1), int *(&pref2))
+  {
+      int * ptr = pref1;
+      pref1 = pref2;
+      pref2 = ptr;
+  }
+  
