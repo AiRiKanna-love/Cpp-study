@@ -153,3 +153,81 @@ int main(void)
 
 [구조체 안에 함수 삽입하기]
 
+구조체 Car에 종속적인 함수들을 구조체 안에 함께 묶어버리면 어떻겠는가? 그렇게 되면 자동차와 관련된 데이터와 함수를 모두 묶는 셈이 되기 때문에 보다 확실한 구분이 가능하다.
+그럼 앞서 보인 예제를 이용해서 필자가 한번 묶어보겠다. C++에서는 구조체 안에 함수를 삽입하는 것을 허용하니 말이다.
+
+struct Car
+{
+    char gamerID[ID_LEN]
+    int fuelGauge;
+    int curSpeed;
+
+    void ShowCarState()
+    {
+        cout << "소유자ID: " << gamerID << endl;
+        cout << "연료량: " << fuelGauge << '%' << endl;
+        cout << "현재속도: " << curSpeed << "km/s" << endl;
+    }
+
+    void Accel()
+    {
+        if(fuelGauge <= 0)
+            return;
+        else
+            fuelGauge -= FUEL_STEP;
+        
+        
+        if(curSpeed+ACC_STEP <= MAX_STEP)
+        {
+        curSpeed = MAX_STEP;
+        return;
+        }
+        
+        
+        curSpeed+=ACC_STEP;
+    }
+
+    void Break()
+    {
+        if(curSpeed < BRK_STEP)
+        {
+            curSpeed = 0;
+            return;
+        }
+    
+        curSpeed -= BRK_STEP;
+    }
+    
+};
+
+구조체 안에 삽입된 함수의 정의에 어떠한 변화가 생겼는지, ShowCarState 함수를 예로 확인해보자.
+먼저 다음은 삽입되기 이전의 함수이다.
+
+void ShowCarState(const Car &car)
+{
+    cout << "소유자ID: " << car.gamerID << endl;
+    cout << "연료량: " << car.fuelGauge << '%' << endl;
+    cout << "현재속도: " << car.curSpeed << "km/s" << endl;
+}
+
+이 함수는 매개변수를 통해서 연산의 대상정보를 받는다. 그리고 함수 내에서도 참조자 car를 대상으로 연산(출력)을 진행한다. 
+반면 구조체 안에 삽입된 함수의 정의에는 이들 정보가 존재하지 않는다.
+
+void ShowCarState()
+{
+    cout << "소유자ID: " << gamerID << endl;
+    cout << "연료량: " << fuelGauge << '%' << endl;
+    cout << "현재속도: " << curSpeed << "km/s" << endl;
+}
+
+이렇듯 연산의 대상에 대한 정보가 불필요한 이유는, 함수가 구조체 내에 삽입되면서 구조체 내에 선언된 변수에 직접접근이 가능해졌기 때문이다.
+따라서 다음과 같이 구조체 변수를 각각 선언하면,
+
+Car run99 = {"run99", 100, 0};
+Car sped77 = {"sped77", 100, 0};
+
+다음의 형태로 구조체 변수가 생성된다.
+
+책 111페이지 그림 03 - 1
+
+
