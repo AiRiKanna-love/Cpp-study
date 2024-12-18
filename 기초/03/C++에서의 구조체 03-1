@@ -230,4 +230,168 @@ Car sped77 = {"sped77", 100, 0};
 
 책 111페이지 그림 03 - 1
 
+참고로, 위 그림에서는 모든 구조체 변수 내에 함수가 각각 별도로 존재하는 것처럼 묘사해 놨는데, 실제로는 모든 Car 구조체 변수가 하나의 함수를 공유한다.
+다만, 논리적으로 각각의 변수가 자신의 함수를 별도로 지니는 것과 같은 효과 및 결과를 보이기 때문에 C++에의 구조체 변수는 위 그림의 형태로 이해하는것이 좋다.
+그럼 다음 예제를 확인해보자.
 
+ex) RacingCarFuncAdd.cpp
+#include <iostream>
+using namespace std;
+
+#define ID_LEN   20
+#define MAX_SPD  200
+#define FUEL_STEP  2
+#define ACC_STEP  10
+#define BRK_STEP  10
+
+struct Car						// 10행
+{
+    char gamerID[ID_LEN];  // 소유자 ID
+    int fuelGauge;         // 연료량
+    int curSpeed;          // 현재속도
+
+    void ShowCarState()
+    {
+        cout << "소유자ID: " << gamerID << endl;
+        cout << "연료량: " << fuelGauge << '%' << endl;
+        cout << "현재속도: " << curSpeed << "km/s" << endl;
+    }
+    void Accel()
+    {
+        if(fuelGauge <= 0)
+            return;
+        else
+            fuelGauge -= FUEL_STEP;
+
+        if(fuelGauge+ACC_STEP >= MAX_SPD)
+        {
+			curSpeed = MAX_SPD;
+			return;
+		}
+
+		curSpeed += ACC_STEP;
+    }
+	void Break()
+	{
+		if(curSpeed < BRK_STEP)
+		{
+			curSpeed = 0;
+			return;
+		}
+
+		curSpeed -= BRK_STEP;
+	}
+};
+
+int main(void)
+{
+	Car run99 = {"run99", 100, 0};		// 51 행
+	run99.Accel();						// 52 행
+	run99.Accel();
+	run99.ShowCarState();
+	run99.Break();
+	run99.ShowCarState();
+
+	Car sped77 = {"sped77", 100, 0};		// 58 행
+	sped77.Accel();							// 59 행
+	sped77.Break();
+	sped77.ShowCarState();
+}
+
+해설
+10 행 : 함수를 멤버로 지니는 구조체의 정의를 보이고 있다. 
+51 행 : 초기화의 대상은 함수가 아닌 변수이다. 따라서 함수가 삽입되었어도 초기화의 방법은 달라지지 않는다.
+52 : 구조체 run99에 존재하는(존재하는 것으로 이해하자고 했다), Accel 함수를 호출하고 있다. 
+구조체 내에 선언된 변수에 접근하는 방법과 동일한 방식으로 함수의 호출이 이뤄진다.
+58, 59 행 : 또 다른 구조체 변수를 선언하였다. 그리고 이번에는 이 구조체를 대상으로 Accel 함수를 호출하고 있다.
+이렇듯 구조체 내에 함수가 정의되었기 때문에, 구조체 변수를 대상으로 함수의 호출이 이뤄져야 한다.
+
+
+결과
+소유자ID: run99
+연료량: 96%
+현재속도: 20km/s
+소유자ID: run99
+연료량: 96%
+현재속도: 10km/s
+소유자ID: sped77
+연료량: 98%
+현재속도: 0km/s
+
+그저 구조체 내에 함수를 정의하고 호출한 것뿐이지ㅏㅁㄴ, 이미 우리는 C언어에서 C++로 한참 넘어와버렸다.
+// 라고 합니다~ 전 모르겠어요 ㅠ
+
+
+[구조체 안에 enum 상수의 선언]
+
+예제 RacingCarFuncAdd.cpp 를 보면, 다음의 매크로 상수들이 존재한다.
+
+#define ID_LEN   	20
+#define MAX_SPD  	200
+#define FUEL_STEP  	2
+#define ACC_STEP  	10
+#define BRK_STEP 	10
+
+그런데 이들 상수 역시 구조체 Car에게만 의미가 있는 상수들이다. 즉, 다른 영역에서 사용하도록 정의된 상수가 아니니,
+이들 상수도 구조체 내에 포함시키는 것이 좋을 수 있다.(상황마다 조금씩 달라질 수 있으므로, 약간 소극적인 표현 사용)
+따라서 이러한 경우에는 열거형 enum을 이용해서 다음과 같이 구조체 내에서만 유효한 상수를 정의하면 된다.
+
+struct Car
+{
+	enum
+	{
+		ID_LEN = 20,
+		MAX_SPD = 200,
+		FUEL_STEP = 2,
+		ACC_STEP = 10,
+		BRK_STEP = 10
+	};
+
+	char gamerID[ID_LEN];
+	int fuelGauge;
+	int curSpeed;
+
+	void ShowCarState() { ... }
+	void Accel() { ... }
+	void Break() { ... }
+};
+
+열거형에 대해서는 이미 C언어를 통해서 공부하였으니, 추가적인 설명은 생략하겠다..(난 몰라.. C언어 공부해야겠네..)
+참고로 enum의 선언을 구조체 내부에 삽입하는 것이 부담스럽다면, 이름공간을 이용해서 상수가 사용되는 영역을 명시하는 것도 또 다른 방법이 될 수 있다.
+그리고 이렇게 이름공간을 이요하면, 몇몇 구조체들 사이에서만 사용하는 상수들을 선언할 때 특히 도움이 되며, 위에서 보인 방법보다 가독성도 좋아지는 경향이 이싿.
+그럼 예제를 통해서 이 방법을 알아보자.
+
+ex) RacingCarEnum.cpp
+#include <iostream>
+using namespace std;
+
+namespace CAR_CONST
+{
+	enum
+	{
+		ID_LEN = 20,
+		MAX_SPD = 200,
+		FUEL_STEP = 2,
+		ACC_STEP = 10,
+		BRK_STEP = 10
+	};
+}
+
+struct Car
+{
+    char gamerID[CAR_CONST::ID_LEN];  // 소유자 ID
+    int fuelGauge;         // 연료량
+    int curSpeed;          // 현재속도
+
+    void ShowCarState()
+    {
+        cout << "소유자ID: " << gamerID << endl;
+        cout << "연료량: " << fuelGauge << '%' << endl;
+        cout << "현재속도: " << curSpeed << "km/s" << endl;
+    }
+	void Accel()
+	{
+		
+	}
+
+}
