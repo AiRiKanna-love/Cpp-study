@@ -279,3 +279,258 @@ void Car::Break() {...}
 '클래스의 정의'는 소스 파일에 저장해서, 컴파일이 되도록 하면 된다. 그럼 지금까지 설명한 내용을 기반으로 앞서 보인 예제 RacingCarClassBase.cpp를 총 3개의 파일로 적절히 나눠보자.
 
 ex)Car.h
+#ifndef __CAR_H__		// 1 행
+#define __CAR_H__		// 2행
+
+namespace CAR_CONST		// 4 행
+{
+	enum
+	{
+		ID_LEN = 20, MAX_SPD = 200, FUEL_STEP = 2,
+		ACC_STEP = 10, BRK_STEP = 10
+	};
+}						// 1 행
+
+class Car
+{
+	private:
+		char gamerID[CAR_CONST::ID_LEN];
+		int fuelGauge;
+		int curSpeed;
+	public:
+		void InitMembers(char * name, int fuel);
+		void ShowCarState();
+		void Accel();
+		void Break();
+};
+
+#endif		// 26 행
+
+해설
+1, 2, 26 행 : 이는 헤더파일의 중복포함 문제를 해결하기 위한 매크로이다.
+4 ~ 11 행 : 이는 Car에서 제한적으로 사용되는 상수의 선언이므로 클래스 Car와 같은 파일에 선언하였다.
+
+
+
+ex)Car.cpp
+#include <iostream>
+#include <cstring>
+#include "Car.h"				// 3 행
+using namespace std;
+
+void Car::InitMembers(char * name, int fuel)
+{
+	strcpy(gamerID, name);
+	fuelGauge = fuel;
+	curSpeed = 0;
+}
+
+void Car::ShowCarState()
+{
+	cout << "소유자ID: " << gamerID << endl;
+	cout << "연료량: " << fuelGauge << '%' << endl;
+	cout << "현재속도: " << curSpeed << "km/s" << endl << endl;
+}
+
+void Car::Accel()
+{
+	if(fuelGauge < CAR_CONST::FUEL_STEP)
+		return;
+	else
+		fuelGauge -= CAR_CONST::FUEL_STEP;
+
+	if((curSpeed + CAR_CONST::ACC_STEP) >= CAR_CONST::MAX_SPD)
+	{
+		curSpeed = CAR_CONST::MAX_SPD;
+		return;
+	}
+
+	curSpeed += CAR_CONST::ACC_STEP;
+}
+
+void Car::Break()
+{
+	if(curSpeed < CAR_CONST::BRK_STEP)
+	{
+		curSpeed = 0;
+		return;
+	}
+
+	curSpeed -= CAR_CONST::BRK_STEP;
+}
+
+해설
+3 행 : 멤버함수의 정의부분을 컴파일 하는데도 클래스의 선언 정보가 필요하다. 멤버함수에서 접근하는 변수의 존재유무를 확인해야 하기 때문이다.
+그리고 이름공간 CAR_CONST에 선언된 상수의 사용을 위해서라도 이 헤더파일은 포함되어야 한다.
+
+ex)RacingMain.cpp
+#include "Car.h"		// 1 행
+
+int main(void)
+{
+	Car run99;
+	run99.InitMembers("run99", 100);
+	run99.Accel();
+	run99.Accel();
+	run99.Accel();
+	run99.ShowCarState();
+	run99.Break();
+	run99.ShowCarState();
+	return 0;
+}
+
+해설
+1 행 : main 함수를 구성하는 문장은 클래스 Car와 관련된 것뿐이다. 따라서 헤더파일 Car.h만 포함하면 된다.
+
+결과
+소유자ID: run99
+연료량: 94%
+현재속도: 30km/s
+
+소유자ID: run99
+연료량: 94%
+현재속도: 20km/s
+
+이렇게 파일을 분할해 놓고 보니, 클래스 Car를 구성하는 멤버의 파악도 한결 수월해졌다. 그리고 뭔가 좀 정리가 되었다는 느낌도 들지 않는가?
+사실 처믕네 이러한 파일의 분할이 익숙지 않아서 오히려 부답스럽게 느껴지기도 한다. 그러나 조금만 익숙해지면, 하나의 파일에 모든 것을 집어넣는 것이 오히려 더 이상하게 느껴질 것이다.
+필자는 이후에 제시하는 예제의 성격(또는 크기)에 따라서 파일의 분할유무를 판단할 테니, 위의 파일분할에 익숙해지자.
+
+
+[인라인 함수는 헤더파일에 함께 넣어야 해요]
+
+앞서 보인 파일분할 예제에서 Car.cpp 에 정의된 함수 ShowCarState와 Break를 다음과 같이 인라인화 한 다음에, 그대로 Car.cpp에 두면 컴파일 에러가 발생한다.
+
+	inline void Car::ShowCarState()
+	{
+		cout << "소유자ID: " << gamerID << endl;
+		cout << "연료량: " << fuelGauge << '%' << endl;
+		cout << "현재속도: " << curSpeed << "km/s" << endl << endl;
+	}
+
+	inline void Car::Break()
+	{
+		if(curSpeed < CAR_CONST::BRK_STEP)
+		{
+			curSpeed = 0;
+			return;
+		}
+
+		curSpeed -= CAR_CONST::BRK_STEP;
+	}
+
+혹시 컴파일 에러가 발생하는 이유를 알겠는가? 인라인 함수의 특징을 잘 생각해보면 그 이유를 알 수 잇는데, 이유는 다음과 같다.
+
+	컴파일 과정에서 함수의 호출 문이 있는 곳에 함수의 몸체 부분이 삽입되어야 하므로
+
+예를 들어서 다음의 main 함수를 컴파일 한다고 가정해보자.
+
+	int main(void)
+	{
+		Car run99;
+		run99.InitMembers("run99", 100);
+		run99.Accel();
+		run99.Break();
+		...
+	}
+
+이 때 Break 함수가 인라인 함수가 아니라면, Break 함수가 Car 클래스의 멤버함수인지만 확인을 하고 컴파일은 완료가 된다.
+그러나 Break 함수가 인라인 함수이기 때문에, Break 함수의 호출문장은 컴파일러에 의해서 Break 함수의 몸체로 대체되어야 한다.
+때문에 인라인 함수는 클래스의 선언과 동일한 파일에 저장되어서 컴파일러가 동시에 참조할 수 있게 해야 한다. 아래의 예제에서 보이듯 말이다.
+
+ex)CarInline.h
+#ifnedf __CARINLINE_H__
+#define __CARINLINE_H__
+
+#include <iostream>
+using namespace std;
+
+namespace CAR_CONST
+{
+	enum
+	{
+		ID_LEN = 20, MAX_SPD = 200, FUEL_STEP = 2,
+		ACC_STEP = 10, BRK_STEP = 10
+	};
+}
+
+class Car
+{
+	private:
+		char gamerID[CAR_CONST::ID_LEN];
+		int fuelGauge;
+		int curSpeed;
+	public:
+		void InitMembers(char * name, int fuel);
+		void ShowCarState();
+		void Accel();
+		void Break();
+};
+
+inline void Car::ShowCarState()
+{
+	cout << "소유자ID: " << gamerID << endl;
+	cout << "연료량: " << fuelGauge << '%' << endl;
+	cout << "현재속도: " << curSpeed << "km/s" << endl << endl;
+}
+
+inline void Car::Break()
+{
+	if(curSpeed < CAR_CONST::BRK_STEP)
+	{
+		curSpeed = 0;
+		return;
+	}
+	curSpeed -= CAR_CONST::BRK_STEP;
+}
+
+#endif
+
+CarInline.cpp
+#include <cstring>
+#include "CarInline.h"
+using namespace std;
+
+void Car::InitMembers(char * name, int fuel)
+{
+	strcpy(gamerID, name);
+	fuelGauge = fuel;
+	curSpeed = 0;
+}
+
+void Car::Accel()
+{
+	if(fuelGauge < CAR_CONST::FUEL_STEP)
+		return;
+	else
+		fuelGauge -= CAR_CONST::FUEL_STEP;
+
+	if((curSpeed + CAR_CONST::ACC_STEP) >= CAR_CONST::MAX_SPD)
+	{
+		curSpeed = CAR_CONST::MAX_SPD;
+		return;
+	}
+
+	curSpeed += CAR_CONST::ACC_STEP;
+}
+
+RacingInlineMain.cpp
+#include "CarInline.h"
+
+int main(void)
+{
+	Car run99;
+	run99.InitMembers("run99", 100);
+	run99.Accel();
+	run99.Accel();
+	run99.Accel();
+	run99.ShowCarState();
+	run99.Break();
+	run99.ShowCarState();
+	return 0;
+}
+
+앞서 보인 예제에서 두 개의 함수를 인라인 선언한 것이 변경의 전부이므로, 별도의 소스해설이나 실행겨로가를 보이지는 않겠다.
+그리고 혹시나 해서 하는 말인데(이미 잘 알고 있을 테지만), 컴파일러는 파일 단위로 컴파일을 한다.
+즉, 우리가 A.cpp와 B.cpp를 동시에 컴파일 해서 하나의 실행파일을 만든다 해도, A.cpp의 컴파일 과정에서 B.cpp를 참조하지 않으며,
+B.cpp의 컴파일 과정에서 A.cpp를 참조하지 않는다. 그래서 위의 예제에서 보이듯이 클래스의 선언과 인라인 함수의 정의를 함께 묶어둔 것이다.
+
