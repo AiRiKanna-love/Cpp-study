@@ -133,4 +133,61 @@ bool Point::InitMembers(int xpos, int ypos)
 			cout << "벗어난 범위의 값 전달" << endl;
 			return false;
 		}
+
+		x = xpos;
+		y = ypos;
+		return true;
 }
+
+int Point::GetX() const
+{
+	return x;
+}
+
+int Point::GetY() const
+{
+	return y;
+}
+
+bool Point::SetX(int xpos)
+{
+	if(0>xpos||100<xpos)
+	{
+		cout << "벗어난 범위의 값 전달" << endl;
+		return false;
+	}
+	x = xpos;
+	return true;
+}
+
+bool Point::SetY(int ypos)
+{
+	if(0>ypos||100<ypos)
+	{
+		cout << "벗어난 범위의 값 전달" << endl;
+		return false;
+	}
+	y = ypos;
+	return true;
+}
+
+먼저, 멤버변수에 값을 저장하는 함수 InitMembers, SetX, SetY는 0 이상 100 이하의 값이 전달되지 않으면, 에러 메세지를 출력하면서 값의 저장을 허용하지 않는 형태로 정의되었다.
+따라서 잘못된 값이 저장되지 않을뿐더러, 값이 잘못 전달되는 경우 출력된 메세지를 통해서 문제가 있음을 확인할 수 있다. 물론 프로그램의 성격과 내용에 따라서 문제 상황을 표현 및 처리하는 방법은 달리질 수 있다.
+그럼 결론을 하나 내리겠다
+
+	멤버변수를 private으로 선언하고, 해당 변수에 접근하는 함수를 별도로 정의해서, 안전한 형태로 멤버변수의 접근을 유도하는 것이 바로 '정보은닉'이며, 이는 좋은 클래스가 되기 위한 기본조건이 된다.
+
+참고로, 위의 코드를 보면 변수의 이름이 XXX일 때, 다음과 같이 함수의 이름이 GetXXX, SetXXX로 정의된 함수들을 볼 수 있다.
+
+	int GetX() const;
+	bool SetX(int xpos);
+
+	int GetY() const;
+	bool SetY(int ypos);
+
+이들을 가리케 '엑세스 함수(access function)'라 하는데, 이들은 멤버변수를 private으로 선언하면서 클래스 외부에서의 멤버변수 접근을 목적으로 정의되는 함수들이다.
+이후에 제시하는 완전한 예제를 통해서도 알 수 있겠지만, 이들 함수는 정의되었으되 호출되지 않는 경우도 만다.
+
+	그럼 호출되지 않는 함수를 왜 정의할까?
+
+클래스를 정의할 때 호출될 함수들을 위주로 멤버함수를 구성하는 것은 분명 맞다. 
